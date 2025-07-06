@@ -1,0 +1,1193 @@
+zabbix_export:
+  version: '7.2'
+  template_groups:
+    - uuid: 3dcd5bbe90534f9e8eb5c2d53756af63
+      name: Templates/Power
+  templates:
+    - uuid: 385adfeed5ff479d838b27d9e5470df0
+      template: 'APC Back UPS CS500 by Zabbix Agent'
+      name: 'APC Back UPS CS500 by Zabbix Agent'
+      description: |
+        Template Power APC Back UPS CS500 by Zabbix Agent
+        
+        Based on values reported by NUT.
+        
+        Unofficial, created by vuks69.
+      groups:
+        - name: Templates/Power
+      items:
+        - uuid: 8b83a3edebf7494fa3c442c58e5dc381
+          name: 'APC Back UPS CS500: Battery charge'
+          type: DEPENDENT
+          key: battery.charge
+          history: 7d
+          units: '%'
+          description: 'Current battery charge'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.charge"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+          triggers:
+            - uuid: 5b8f190d85d448a09b8368127cef41eb
+              expression: 'last(/APC Back UPS CS500 by Zabbix Agent/battery.charge)<{$BATTERY.CHARGE.LOW.CRIT}'
+              name: 'APC Back UPS CS500: Battery has critically low capacity'
+              priority: HIGH
+              tags:
+                - tag: scope
+                  value: capacity
+            - uuid: f3a9837c4241471882d04c5880c1275e
+              expression: 'last(/APC Back UPS CS500 by Zabbix Agent/battery.charge)<{$BATTERY.CHARGE.LOW.WARN}'
+              name: 'APC Back UPS CS500: Battery has low capacity'
+              priority: AVERAGE
+              tags:
+                - tag: scope
+                  value: capacity
+        - uuid: b69f32de6f3a4752a5a77fc8a08ef79d
+          name: 'APC Back UPS CS500: Battery low charge threshold'
+          type: DEPENDENT
+          key: battery.charge.low
+          history: 7d
+          units: '%'
+          description: 'Battery low charge threshold'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.charge.low"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: ea1577ec81414f588a53a2c5a83703b0
+          name: 'APC Back UPS CS500: Battery warning charge threshold'
+          type: DEPENDENT
+          key: battery.charge.warning
+          history: 7d
+          units: '%'
+          description: 'Battery warning charge threshold'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.charge.warning"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 8dd8c4f98c794fc69acf44d76ea02a9b
+          name: 'APC Back UPS CS500: Battery maintenance date'
+          type: DEPENDENT
+          key: battery.date
+          history: 7d
+          units: unixtime
+          description: 'Battery installation or last change date'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.date"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var parts = value.split(/-|\//);
+                  var date = new Date(parts[0], parts[1] - 1, parts[2]);
+                  return date.getTime()/1000
+                  
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+          triggers:
+            - uuid: 064ba65081df466388798382212ca16b
+              expression: 'last(/APC Back UPS CS500 by Zabbix Agent/battery.date)<"{now} - {$BATTERY.DATE.THRESHOLD}"'
+              name: 'APC Back UPS CS500: Battery was replaced more than 5 years ago'
+              priority: INFO
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 104a5a16a9014bbc859d846c6c92e255
+          name: 'APC Back UPS CS500: Battery manufacture date'
+          type: DEPENDENT
+          key: battery.mfr.date
+          history: 7d
+          units: unixtime
+          description: 'Battery manufacturing date'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.mfr.date"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var parts = value.split(/-|\//);
+                  var date = new Date(parts[0], parts[1] - 1, parts[2]);
+                  return date.getTime()/1000
+                  
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+          triggers:
+            - uuid: 3223aa84ad554f90996376b8fb9b03f0
+              expression: 'last(/APC Back UPS CS500 by Zabbix Agent/battery.mfr.date)<"{now} - {$BATTERY.DATE.THRESHOLD}"'
+              name: 'APC Back UPS CS500: Battery was manufactured more than 5 years ago'
+              priority: INFO
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 852308d20666446f90155fed77ddd71c
+          name: 'APC Back UPS CS500: Battery runtime'
+          type: DEPENDENT
+          key: battery.runtime
+          history: 7d
+          units: s
+          description: 'Remaining battery runtime'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.runtime"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+          triggers:
+            - uuid: 81c8e909854345b5ae1663a6e808e6a0
+              expression: 'last(/APC Back UPS CS500 by Zabbix Agent/battery.runtime)<{$BATTERY.RUNTIME.LOW}'
+              name: 'APC Back UPS CS500: Battery runtime is low'
+              event_name: 'APC Back UPS CS500: Battery runtime is low (Below {$BATTERY.RUNTIME.LOW}s)'
+              opdata: 'Current runtime remaining: {ITEM.LASTVALUE1}'
+              priority: HIGH
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: cd216da0606b4f7d82a92510da5fea25
+          name: 'APC Back UPS CS500: Battery low runtime threshold'
+          type: DEPENDENT
+          key: battery.runtime.low
+          history: 7d
+          units: s
+          description: 'Battery low runtime threshold'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.runtime.low"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: aaeb72141c254bb8ac61613f8ad23fbe
+          name: 'APC Back UPS CS500: Battery temperature'
+          type: DEPENDENT
+          key: battery.temperature
+          history: 7d
+          value_type: FLOAT
+          units: °C
+          description: 'The current internal UPS temperature in Celsius.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.temperature"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: temperature
+          triggers:
+            - uuid: 61f8e63c07df4c16b7b8ec0b33b50775
+              expression: 'min(/APC Back UPS CS500 by Zabbix Agent/battery.temperature,{$TIME.PERIOD})>{$BATTERY.TEMP.MAX.WARN}'
+              name: 'APC Back UPS CS500: Battery has high temperature'
+              event_name: 'Battery has high temperature (over {$BATTERY.TEMP.MAX.WARN}℃ in the last {$TIME.PERIOD})'
+              opdata: 'Current temperature: {ITEM.LASTVALUE1}'
+              priority: HIGH
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 54eb7ade8afc433c8a20f2fe0bb62fae
+          name: 'APC Back UPS CS500: Battery type'
+          type: DEPENDENT
+          key: battery.type
+          history: 7d
+          value_type: CHAR
+          description: 'Type of battery installed'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.type"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: 95e1545d0ef644549741a7cd6f3849c3
+          name: 'APC Back UPS CS500: Battery voltage'
+          type: DEPENDENT
+          key: battery.voltage
+          history: 7d
+          value_type: FLOAT
+          units: V
+          description: 'Current battery voltage'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.voltage"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 6h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+          triggers:
+            - uuid: c0bbad22d15d4398a4d08fe08f88dffe
+              expression: 'min(/APC Back UPS CS500 by Zabbix Agent/battery.voltage,{$TIME.PERIOD})<{$BATTERY.VOLTAGE.LOW.WARN}'
+              name: 'APC Back UPS CS500: Battery has low voltage'
+              event_name: 'APC Back UPS CS500: Battery has low voltage (Under {$BATTERY.VOLTAGE.LOW.WARN}V in the last {$TIME.PERIOD})'
+              opdata: 'Current battery voltage: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: b14ea2561825443c9ae7fa0f41c5abff
+          name: 'APC Back UPS CS500: Battery nominal voltage'
+          type: DEPENDENT
+          key: battery.voltage.nominal
+          history: 7d
+          value_type: FLOAT
+          units: V
+          description: 'Nominal battery voltage'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["battery.voltage.nominal"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 424e6a4f804846f8b2fe1b371a5a17bc
+          name: 'APC Back UPS CS500: Device manufacturer'
+          type: DEPENDENT
+          key: device.mfr
+          history: 7d
+          value_type: CHAR
+          description: 'Manufacturer of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["device.mfr"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: 232fa129a3fa40dea5ae2c54154a0372
+          name: 'APC Back UPS CS500: Device model'
+          type: DEPENDENT
+          key: device.model
+          history: 7d
+          value_type: CHAR
+          description: 'Model of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["device.model"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: a9f41b59cf6e4bee88566c94dd44e328
+          name: 'APC Back UPS CS500: Device serial number'
+          type: DEPENDENT
+          key: device.serial
+          history: 7d
+          value_type: CHAR
+          description: 'Serial number of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["device.serial"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+          triggers:
+            - uuid: 52c3cbbb824641be863a9d40da424e2b
+              expression: 'change(/APC Back UPS CS500 by Zabbix Agent/device.serial)=1 and nodata(/APC Back UPS CS500 by Zabbix Agent/device.serial,{$TIME.PERIOD})=0'
+              name: 'APC Back UPS CS500: Device serial number changed'
+              event_name: 'APC Back UPS CS500: Device serial number changed in the last {$TIME.PERIOD}'
+              opdata: 'Current ups serial number: {ITEM.LASTVALUE1}'
+              priority: INFO
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 0978b521597a48c4aa860b728725b2e9
+          name: 'APC Back UPS CS500: Device type'
+          type: DEPENDENT
+          key: device.type
+          history: 7d
+          value_type: CHAR
+          description: 'Type of device'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["device.type"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: 009f61210b374f05a43b9bb060826379
+          name: 'APC Back UPS CS500: Driver debug level'
+          type: DEPENDENT
+          key: driver.debug
+          history: 7d
+          description: 'Debug level of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.debug"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: configuration
+        - uuid: 13a5e96a767943d2a8c874eda643ffa6
+          name: 'APC Back UPS CS500: Driver allow killpower flag'
+          type: DEPENDENT
+          key: driver.flag.allow_killpower
+          history: 7d
+          description: 'Allow killpower flag in driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.flag.allow_killpower"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: configuration
+        - uuid: 3758efe94e9e4e05abc1608a7d9329ca
+          name: 'APC Back UPS CS500: Driver name'
+          type: DEPENDENT
+          key: driver.name
+          history: 7d
+          value_type: CHAR
+          description: 'Name of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.name"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 0226e87198594f868502e935f76b8468
+          name: 'APC Back UPS CS500: Driver parameter poll frequency'
+          type: DEPENDENT
+          key: driver.parameter.pollfreq
+          history: 7d
+          units: s
+          description: 'Driver polling frequency parameter'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.parameter.pollfreq"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 35ad675e96ff42c8b890cb1289fb9d17
+          name: 'APC Back UPS CS500: Driver parameter poll interval'
+          type: DEPENDENT
+          key: driver.parameter.pollinterval
+          history: 7d
+          units: s
+          description: 'Driver polling interval parameter'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.parameter.pollinterval"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 02eba5d82e07449f8b972b7e4a66023c
+          name: 'APC Back UPS CS500: Driver parameter port'
+          type: DEPENDENT
+          key: driver.parameter.port
+          history: 7d
+          value_type: CHAR
+          description: 'Driver communication port parameter'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.parameter.port"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: a517908211fd4623bc7064b57b05c2e4
+          name: 'APC Back UPS CS500: Driver parameter synchronous'
+          type: DEPENDENT
+          key: driver.parameter.synchronous
+          history: 7d
+          value_type: CHAR
+          description: 'Driver synchronous mode parameter'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.parameter.synchronous"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: fc9ea630b54741d298f5b3143ddb9f70
+          name: 'APC Back UPS CS500: Driver state'
+          type: DEPENDENT
+          key: driver.state
+          history: 7d
+          value_type: CHAR
+          description: 'Current state of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.state"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 6dc9ea10a3884a0aa7b437c4e27a21db
+          name: 'APC Back UPS CS500: Driver version'
+          type: DEPENDENT
+          key: driver.version
+          history: 7d
+          value_type: CHAR
+          description: 'Version of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.version"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 4539f85fe02e42beba5f438f61362ffc
+          name: 'APC Back UPS CS500: Driver data version'
+          type: DEPENDENT
+          key: driver.version.data
+          history: 7d
+          value_type: CHAR
+          description: 'Data version of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.version.data"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 7fea9aed060145ca97d34cbf17004616
+          name: 'APC Back UPS CS500: Driver internal version'
+          type: DEPENDENT
+          key: driver.version.internal
+          history: 7d
+          value_type: CHAR
+          description: 'Internal version of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.version.internal"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 75fe573b37834925b136bd4a743c5969
+          name: 'APC Back UPS CS500: Driver USB version'
+          type: DEPENDENT
+          key: driver.version.usb
+          history: 7d
+          value_type: TEXT
+          description: 'USB version of UPS driver'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["driver.version.usb"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: driver
+        - uuid: 90598be9b1aa4fd5a41b37a8bb1f6840
+          name: 'APC Back UPS CS500: Input sensitivity'
+          type: DEPENDENT
+          key: input.sensitivity
+          history: 7d
+          value_type: CHAR
+          description: 'Input voltage sensitivity of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["input.sensitivity"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: configuration
+        - uuid: 15d6d847d25845a883bcc88a5f5e691b
+          name: 'APC Back UPS CS500: Input transfer high threshold'
+          type: DEPENDENT
+          key: input.transfer.high
+          history: 7d
+          units: V
+          description: 'High voltage transfer threshold'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["input.transfer.high"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 669985707a344366872db53e6a8ec784
+          name: 'APC Back UPS CS500: Input transfer low threshold'
+          type: DEPENDENT
+          key: input.transfer.low
+          history: 7d
+          units: V
+          description: 'Low voltage transfer threshold'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["input.transfer.low"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 4e1ff76db4c5463eb579ec7847cb7c44
+          name: 'APC Back UPS CS500: Input voltage'
+          type: DEPENDENT
+          key: input.voltage
+          history: 7d
+          value_type: FLOAT
+          units: V
+          description: 'Current input voltage'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["input.voltage"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: f6f5076e5eb64800b9de64bd1c3703f7
+          name: 'APC Back UPS CS500: Nominal input voltage'
+          type: DEPENDENT
+          key: input.voltage.nominal
+          history: 7d
+          units: V
+          description: 'Nominal input voltage'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["input.voltage.nominal"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 381373bf406d4030bb3d7774fd66385d
+          name: 'APC Back UPS CS500: Output frequency'
+          type: DEPENDENT
+          key: output.frequency
+          history: 7d
+          value_type: FLOAT
+          units: Hz
+          description: 'Current output frequency'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["output.frequency"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: c827bc06aa304d7c8bc3d3031d82cc4b
+          name: 'APC Back UPS CS500: Output voltage'
+          type: DEPENDENT
+          key: output.voltage
+          history: 7d
+          value_type: FLOAT
+          units: V
+          description: 'Current output voltage'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["output.voltage"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: a043225c89244609ad558210f2104bfc
+          name: 'APC Back UPS CS500: Nominal output voltage'
+          type: DEPENDENT
+          key: output.voltage.nominal
+          history: 7d
+          units: V
+          description: 'Nominal output voltage'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["output.voltage.nominal"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 31b0d5a91acc435bbdd18139c84e1a0c
+          name: 'APC Back UPS CS500: UPS beeper status'
+          type: DEPENDENT
+          key: ups.beeper.status
+          history: 7d
+          value_type: CHAR
+          description: 'Status of UPS beeper'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.beeper.status"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: d6159a7034a046d5bb3c50da56efaca4
+          name: 'APC Back UPS CS500: UPS shutdown delay'
+          type: DEPENDENT
+          key: ups.delay.shutdown
+          history: 7d
+          units: s
+          description: 'Delay before load shutdown'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.delay.shutdown"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: configuration
+        - uuid: d2265070d52f453fad5809071343ffc9
+          name: 'APC Back UPS CS500: UPS startup delay'
+          type: DEPENDENT
+          key: ups.delay.start
+          history: 7d
+          units: s
+          description: 'Delay before load start'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.delay.start"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: configuration
+        - uuid: 7f04b0a5682f4aff8453d490cf791c93
+          name: 'APC Back UPS CS500: UPS firmware version'
+          type: DEPENDENT
+          key: ups.firmware
+          history: 7d
+          value_type: CHAR
+          description: 'UPS firmware version'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.firmware"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+          triggers:
+            - uuid: 9df66501a70e4c38bf99434e7cf43e21
+              expression: 'change(/APC Back UPS CS500 by Zabbix Agent/ups.firmware)=1 and nodata(/APC Back UPS CS500 by Zabbix Agent/ups.firmware,{$TIME.PERIOD})=0'
+              name: 'APC Back UPS CS500: UPS firmware version changed'
+              event_name: 'UPS firmware version changed in the last {$TIME.PERIOD}'
+              priority: INFO
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: e1e2326b2fb148b6970597a6ca614851
+          name: 'APC Back UPS CS500: UPS auxiliary firmware version'
+          type: DEPENDENT
+          key: ups.firmware.aux
+          history: 7d
+          value_type: CHAR
+          description: 'UPS auxiliary firmware version'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.firmware.aux"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: 0182d2915afc4ea1957ce0c24ac7f8e7
+          name: 'APC Back UPS CS500: UPS load percent'
+          type: DEPENDENT
+          key: ups.load
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          description: 'Current UPS load percent'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.load"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+          triggers:
+            - uuid: 611ff61abac740f4b6c705cae9263939
+              expression: 'min(/APC Back UPS CS500 by Zabbix Agent/ups.load,{$TIME.PERIOD})>{$UPS.LOAD.AVERAGE.WARN}'
+              name: 'APC Back UPS CS500: UPS load is high'
+              event_name: 'APC Back UPS CS500: UPS load is high (Over {$UPS.LOAD.AVERAGE.WARN} in the last {$TIME.PERIOD})'
+              opdata: 'Current UPS load: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: 2a31db40ceca4e53a9f953ce3aa1f339
+              expression: 'min(/APC Back UPS CS500 by Zabbix Agent/ups.load,{$TIME.PERIOD})>{$UPS.LOAD.HIGH.WARN}'
+              name: 'APC Back UPS CS500: UPS load is very high'
+              event_name: 'APC Back UPS CS500: UPS load is very high (Over {$UPS.LOAD.HIGH.WARN} in the last {$TIME.PERIOD})'
+              opdata: 'Current UPS load: {ITEM.LASTVALUE1}'
+              priority: HIGH
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: 143f108c224c458382b4435187a07d51
+          name: 'APC Back UPS CS500: UPS manufacturer'
+          type: DEPENDENT
+          key: ups.mfr
+          history: 7d
+          value_type: CHAR
+          description: 'Manufacturer of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.mfr"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: d0370207a2a648dc9947911c621d0547
+          name: 'APC Back UPS CS500: UPS manufacture date'
+          type: DEPENDENT
+          key: ups.mfr.date
+          history: 7d
+          units: unixtime
+          description: 'UPS manufacturing date'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.mfr.date"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var parts = value.split(/-|\//);
+                  var date = new Date(parts[0], parts[1] - 1, parts[2]);
+                  return date.getTime()/1000
+                  
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: d54fadee3c7f4341b729fe763b62b518
+          name: 'APC Back UPS CS500: UPS model'
+          type: DEPENDENT
+          key: ups.model
+          history: 7d
+          value_type: CHAR
+          description: 'Model of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.model"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: b9d41d6e79eb4364a33873d5bc6a66fe
+          name: 'APC Back UPS CS500: UPS product ID'
+          type: DEPENDENT
+          key: ups.productid
+          history: 7d
+          value_type: CHAR
+          description: 'Product ID of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.productid"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: a2af8ab9d6234cb0af24d965c5c09971
+          name: 'APC Back UPS CS500: UPS nominal real power'
+          type: DEPENDENT
+          key: ups.realpower.nominal
+          history: 7d
+          units: W
+          description: 'Nominal real power capacity'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.realpower.nominal"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: power
+        - uuid: 9e65e88069904775a5fc2cead91df117
+          name: 'APC Back UPS CS500: UPS serial number'
+          type: DEPENDENT
+          key: ups.serial
+          history: 7d
+          value_type: CHAR
+          description: 'Serial number of UPS'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.serial"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: bc0630ba9f554ae99236b267696e3a1b
+          name: 'APC Back UPS CS500: UPS status'
+          type: DEPENDENT
+          key: ups.status
+          history: 7d
+          value_type: CHAR
+          description: 'Current UPS status'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.status"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: health
+          triggers:
+            - uuid: 753f70917ec446ed9ffbdfa3e4f65396
+              expression: 'last(/APC Back UPS CS500 by Zabbix Agent/ups.status)<>{$UPS.STATE.ONLINE}'
+              name: 'APC Back UPS CS500: UPS status is not OL/OnLine'
+              event_name: 'UPS status is not {$UPS.STATE.ONLINE}'
+              opdata: 'Current UPS status: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: e17341ba3e3f4d09bb92e92623a7ec70
+          name: 'APC Back UPS CS500: UPS self-test result'
+          type: DEPENDENT
+          key: ups.test.result
+          history: 7d
+          value_type: TEXT
+          description: 'Result of last UPS self-test'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.test.result"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: health
+        - uuid: 292654301529448797f4d13b1f3187fb
+          name: 'APC Back UPS CS500: UPS reboot timer'
+          type: DEPENDENT
+          key: ups.timer.reboot
+          history: 7d
+          units: s
+          description: 'Time before the load will be rebooted'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.timer.reboot"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: health
+        - uuid: 21dfe064c33f47f9a4eba348d79382e7
+          name: 'APC Back UPS CS500: UPS shutdown timer'
+          type: DEPENDENT
+          key: ups.timer.shutdown
+          history: 7d
+          value_type: FLOAT
+          units: s
+          description: 'Time before the load will be shutdown'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.timer.shutdown"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: health
+        - uuid: acc697b9d2dd4d2bb159e308d9b1ab23
+          name: 'APC Back UPS CS500: UPS startup timer'
+          type: DEPENDENT
+          key: ups.timer.start
+          history: 7d
+          units: s
+          description: 'Time before the load will be started'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.timer.start"]'
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: health
+        - uuid: 90285329b9b74a54b14c663ee875eacf
+          name: 'APC Back UPS CS500: UPS vendor ID'
+          type: DEPENDENT
+          key: ups.vendorid
+          history: 7d
+          value_type: CHAR
+          description: 'Vendor ID for USB devices'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$["ups.vendorid"]'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          master_item:
+            key: 'upsc.get["{$UPSC.SERVER}"]'
+          tags:
+            - tag: component
+              value: inventory
+        - uuid: 8034a39aea5f4332b4c6c3a3937fd480
+          name: 'APC Back UPS CS500: Get status'
+          key: 'upsc.get["{$UPSC.SERVER}"]'
+          history: 1h
+          value_type: TEXT
+          description: 'Getting data from upsc as JSON'
+          tags:
+            - tag: component
+              value: raw
+      tags:
+        - tag: class
+          value: power
+        - tag: target
+          value: apc
+        - tag: target
+          value: apc-back-ups-cs500
+      macros:
+        - macro: '{$BATTERY.CHARGE.LOW.CRIT}'
+          description: 'Critically low battery warning threshold.'
+        - macro: '{$BATTERY.CHARGE.LOW.WARN}'
+          value: '50'
+          description: 'Low battery warning threshold.'
+        - macro: '{$BATTERY.DATE.THRESHOLD}'
+          value: '157788000'
+          description: 'Threshold in seconds for battery date (e.g., 5 years)'
+        - macro: '{$BATTERY.RUNTIME.LOW}'
+          value: '120'
+          description: 'Low runtime threshold in seconds.'
+        - macro: '{$BATTERY.TEMP.MAX.WARN}'
+          value: '50'
+          description: 'Maximum safe battery temperature in Celsius.'
+        - macro: '{$BATTERY.VOLTAGE.LOW.WARN}'
+          value: '10.5'
+          description: 'Low voltage warning threshold.'
+        - macro: '{$TIME.PERIOD}'
+          value: 15m
+          description: 'Time period for min/max/avg calculations.'
+        - macro: '{$UPS.LOAD.AVERAGE.WARN}'
+          value: '60'
+          description: 'High load warning threshold in percent.'
+        - macro: '{$UPS.LOAD.HIGH.WARN}'
+          value: '80'
+          description: 'High load warning threshold in percent.'
+        - macro: '{$UPS.STATE.ONLINE}'
+          value: OL
+          description: 'UPS online state value.'
+        - macro: '{$UPSC.SERVER}'
+          value: apc-cs500
+          description: 'upsd server/device to query by upsc'
+  triggers:
+    - uuid: f3ee0d9d200b4ec783c921c67e2683d1
+      expression: 'max(/APC Back UPS CS500 by Zabbix Agent/input.voltage,{$TIME.PERIOD})>last(/APC Back UPS CS500 by Zabbix Agent/input.transfer.high)'
+      name: 'APC Back UPS CS500: Input voltage above safe value'
+      opdata: 'Current input voltage: {ITEM.LASTVALUE1}'
+      priority: WARNING
+      tags:
+        - tag: scope
+          value: notice
+    - uuid: 91a398dc9cd847ff9744b52ed75dc78c
+      expression: 'min(/APC Back UPS CS500 by Zabbix Agent/input.voltage,{$TIME.PERIOD})<last(/APC Back UPS CS500 by Zabbix Agent/input.transfer.low)'
+      name: 'APC Back UPS CS500: Input voltage below safe value'
+      opdata: 'Current input voltage: {ITEM.LASTVALUE1}'
+      priority: WARNING
+      tags:
+        - tag: scope
+          value: notice
+    - uuid: c574263792e14c9d8e123267d4264393
+      expression: 'last(/APC Back UPS CS500 by Zabbix Agent/output.voltage)<>last(/APC Back UPS CS500 by Zabbix Agent/output.voltage.nominal)'
+      name: 'APC Back UPS CS500: Output voltage not nominal'
+      opdata: 'Current output voltage: {ITEM.LASTVALUE1}'
+      priority: AVERAGE
+      tags:
+        - tag: scope
+          value: notice
+  graphs:
+    - uuid: 406b07ec1ff7495eaafabf63366fad8c
+      name: 'APC Back UPS CS500: Voltages'
+      graph_items:
+        - color: 2774A4
+          calc_fnc: ALL
+          item:
+            host: 'APC Back UPS CS500 by Zabbix Agent'
+            key: input.voltage
+        - sortorder: '1'
+          color: C7A72D
+          calc_fnc: ALL
+          item:
+            host: 'APC Back UPS CS500 by Zabbix Agent'
+            key: output.voltage
